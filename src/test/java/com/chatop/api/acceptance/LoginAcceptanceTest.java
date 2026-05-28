@@ -21,7 +21,7 @@ import com.chatop.api.service.AuthServiceImpl;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-public class LoginAcceptanceTest {
+class LoginAcceptanceTest {
 
     @Autowired
     private MockMvc mockMvc;

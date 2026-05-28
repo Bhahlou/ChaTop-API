@@ -23,7 +23,7 @@ import com.jayway.jsonpath.JsonPath;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-public class MeAcceptanceTest {
+class MeAcceptanceTest {
 
     @Autowired
     private MockMvc mockMvc;
