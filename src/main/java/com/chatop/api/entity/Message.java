@@ -13,8 +13,8 @@ public class Message {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private String message;
+)
+    private String content;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
