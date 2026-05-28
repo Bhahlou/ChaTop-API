@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.chatop.api.dto.CreateRentalRequest;
 import com.chatop.api.dto.SuccessMessageResponse;
 import com.chatop.api.entity.Rental;
+import com.chatop.api.exception.CouldNotSSaveFile;
 import com.chatop.api.repository.RentalRepository;
 import com.chatop.api.repository.UserRepository;
 
@@ -54,13 +55,22 @@ public class RentalServiceImpl implements RentalService {
 
     private String saveFile(MultipartFile file) {
         try {
-            Path uploadPath = Path.of(uploadDir);
+            Path uploadPath = Path.of(uploadDir).toAbsolutePath().normalize();
             Files.createDirectories(uploadPath);
-            String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            Files.copy(file.getInputStream(), uploadPath.resolve(filename));
-            return baseUrl + "/uploads/" + filename;
+            String originalFilename = file.getOriginalFilename();
+            String extension = (originalFilename != null && originalFilename.contains("."))
+                    ? originalFilename.substring(originalFilename.lastIndexOf('.'))
+                    : "";
+            // Use only a UUID to avoid path traversal from user-controlled filenames
+            String safeFilename = UUID.randomUUID() + extension.replaceAll("[^a-zA-Z0-9.]", "");
+            Path targetPath = uploadPath.resolve(safeFilename).normalize();
+            if (!targetPath.startsWith(uploadPath)) {
+                throw new CouldNotSSaveFile("Invalid file path");
+            }
+            Files.copy(file.getInputStream(), targetPath);
+            return baseUrl + "/uploads/" + safeFilename;
         } catch (IOException e) {
-            throw new RuntimeException("Failed to store file", e);
+            throw new CouldNotSSaveFile("Failed to store file");
         }
     }
 

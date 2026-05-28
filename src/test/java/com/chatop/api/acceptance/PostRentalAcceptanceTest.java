@@ -29,7 +29,7 @@ import com.jayway.jsonpath.JsonPath;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-public class PostRentalAcceptanceTest {
+class PostRentalAcceptanceTest {
 
     @TempDir
     static Path tempUploadDir;

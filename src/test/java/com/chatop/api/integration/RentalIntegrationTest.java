@@ -36,7 +36,7 @@ import jakarta.transaction.Transactional;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-public class RentalIntegrationTest {
+class RentalIntegrationTest {
 
     private static final String TEST_USER_EMAIL = "alice@integration.com";
 

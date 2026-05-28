@@ -26,4 +26,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleLoginError(LoginException ex) {
         return ResponseEntity.status(401).body(Map.of(MESSAGE, ex.getMessage()));
     }
+
+    @ExceptionHandler(CouldNotSSaveFile.class)
+    public ResponseEntity<Map<String, String>> handleCouldNotSaveFile(CouldNotSSaveFile ex) {
+        return ResponseEntity.status(500).body(Map.of(MESSAGE, ex.getMessage()));
+    }
 }

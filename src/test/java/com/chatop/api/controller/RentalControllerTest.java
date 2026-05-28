@@ -31,7 +31,7 @@ import jakarta.servlet.FilterChain;
 
 @WebMvcTest(RentalController.class)
 @Import(SecurityConfig.class)
-public class RentalControllerTest {
+class RentalControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
