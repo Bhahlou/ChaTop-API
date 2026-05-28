@@ -145,8 +145,13 @@ class AuthControllerTest {
   @DisplayName("GET /api/auth/me - Success")
   @WithMockUser(username = "john@test.com")
   void meShouldReturn200WithUserInfoWhenTokenIsValid() throws Exception {
-    when(authService.getMe(any()))
-        .thenReturn(new GetMeResponse(1L, "John Doe", "john@test.com", LocalDateTime.now(), LocalDateTime.now()));
+    GetMeResponse meResponse = new GetMeResponse();
+    meResponse.setId(1L);
+    meResponse.setName("John Doe");
+    meResponse.setEmail("john@test.com");
+    meResponse.setCreatedAt(LocalDateTime.now());
+    meResponse.setUpdatedAt(LocalDateTime.now());
+    when(authService.getMe(any())).thenReturn(meResponse);
 
     mockMvc.perform(get("/api/auth/me"))
         .andExpect(status().isOk())

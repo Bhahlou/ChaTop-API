@@ -9,6 +9,7 @@ import com.chatop.api.exception.LoginException;
 import com.chatop.api.repository.UserRepository;
 import com.chatop.api.security.JwtUtil;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,11 +23,13 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final ModelMapper modelMapper;
 
-    public AuthServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
+    public AuthServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, ModelMapper modelMapper) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
+        this.modelMapper = modelMapper;
     }
 
     @Override
@@ -67,13 +70,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new LoginException("User not found"));
 
-        GetMeResponse response = new GetMeResponse(
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                user.getCreatedAt(),
-                user.getUpdatedAt());
-        return response;
+        return modelMapper.map(user, GetMeResponse.class);
     }
 
 }
