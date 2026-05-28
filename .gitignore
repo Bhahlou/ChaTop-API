@@ -36,5 +36,8 @@ build/
 ### env.properties ###
 env.properties
 
+### Uploads ###
+uploads/
+
 ### AI ###
 .claude/

@@ -4,7 +4,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,14 +12,15 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.chatop.api.dto.RegisterRequest;
-import com.chatop.api.repository.UserRepository;
 import com.chatop.api.service.AuthServiceImpl;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Transactional
 class LoginAcceptanceTest {
 
     @Autowired
@@ -29,17 +29,9 @@ class LoginAcceptanceTest {
     @Autowired
     private AuthServiceImpl authService;
 
-    @Autowired
-    private UserRepository userRepository;
-
     @BeforeEach
     void createUser() {
         authService.register(new RegisterRequest("Alice", "alice@acceptance.com", "password123"));
-    }
-
-    @AfterEach
-    void cleanUp() {
-        userRepository.findByEmail("alice@acceptance.com").ifPresent(userRepository::delete);
     }
 
     @Test
