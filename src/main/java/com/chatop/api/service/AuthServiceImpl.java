@@ -1,5 +1,6 @@
 package com.chatop.api.service;
 
+import com.chatop.api.dto.GetMeResponse;
 import com.chatop.api.dto.LoginRequest;
 import com.chatop.api.dto.RegisterRequest;
 import com.chatop.api.entity.User;
@@ -7,6 +8,8 @@ import com.chatop.api.exception.EmailAlreadyExistsException;
 import com.chatop.api.exception.LoginException;
 import com.chatop.api.repository.UserRepository;
 import com.chatop.api.security.JwtUtil;
+
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,4 +61,19 @@ public class AuthServiceImpl implements AuthService {
 
         return jwtUtil.generateToken(request.getEmail());
     }
+
+    @Override
+    public GetMeResponse getMe(UserDetails userDetails) {
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new LoginException("User not found"));
+
+        GetMeResponse response = new GetMeResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getCreatedAt(),
+                user.getUpdatedAt());
+        return response;
+    }
+
 }

@@ -9,13 +9,18 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.jayway.jsonpath.JsonPath;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Transactional
 class RegisterIntegrationTest {
 
   @Autowired
@@ -88,5 +93,35 @@ class RegisterIntegrationTest {
             """))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.token").isNotEmpty());
+  }
+
+  @Test
+  @Tag("me")
+  @DisplayName("GET /api/auth/me - Success")
+  void meShouldReturn200WithUserInfoWhenTokenIsValid() throws Exception {
+    String registerBody = """
+        {
+          "name": "Alice",
+          "email": "alice@integration.com",
+          "password": "password123"
+        }
+        """;
+
+    String registerResponse = mockMvc.perform(post("/api/auth/register")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(registerBody))
+        .andExpect(status().isOk())
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
+
+    String token = JsonPath.read(registerResponse, "$.token");
+
+    mockMvc.perform(get("/api/auth/me")
+        .header("Authorization", "Bearer " + token))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("Alice"))
+        .andExpect(jsonPath("$.email").value("alice@integration.com"));
+
   }
 }

@@ -1,25 +1,37 @@
 package com.chatop.api.controller;
 
+import com.chatop.api.config.SecurityConfig;
+import com.chatop.api.dto.GetMeResponse;
 import com.chatop.api.exception.LoginException;
+import com.chatop.api.security.JwtAuthenticationFilter;
 import com.chatop.api.service.AuthService;
 
+import jakarta.servlet.FilterChain;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.http.MediaType;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.time.LocalDateTime;
+
 @WebMvcTest(AuthController.class)
-@AutoConfigureMockMvc(addFilters = false)
+@Import(SecurityConfig.class)
 class AuthControllerTest {
 
   @Autowired
@@ -27,6 +39,20 @@ class AuthControllerTest {
 
   @MockitoBean
   private AuthService authService;
+
+  @MockitoBean
+  private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+  @MockitoBean
+  private UserDetailsService userDetailsService;
+
+  @BeforeEach
+  void setupFilter() throws Exception {
+    doAnswer(inv -> {
+      inv.getArgument(2, FilterChain.class).doFilter(inv.getArgument(0), inv.getArgument(1));
+      return null;
+    }).when(jwtAuthenticationFilter).doFilter(any(), any(), any());
+  }
 
   @Test
   @Tag("register")
@@ -111,6 +137,31 @@ class AuthControllerTest {
               "password": "wrongpassword"
             }
             """))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  @Tag("me")
+  @DisplayName("GET /api/auth/me - Success")
+  @WithMockUser(username = "john@test.com")
+  void meShouldReturn200WithUserInfoWhenTokenIsValid() throws Exception {
+    when(authService.getMe(any()))
+        .thenReturn(new GetMeResponse(1L, "John Doe", "john@test.com", LocalDateTime.now(), LocalDateTime.now()));
+
+    mockMvc.perform(get("/api/auth/me"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("John Doe"))
+        .andExpect(jsonPath("$.email").value("john@test.com"))
+        .andExpect(jsonPath("$.id").isNumber())
+        .andExpect(jsonPath("$.created_at").isNotEmpty())
+        .andExpect(jsonPath("$.updated_at").isNotEmpty());
+  }
+
+  @Test
+  @Tag("me")
+  @DisplayName("GET /api/auth/me - Missing token")
+  void meShouldReturn401WhenTokenIsMissing() throws Exception {
+    mockMvc.perform(get("/api/auth/me"))
         .andExpect(status().isUnauthorized());
   }
 
