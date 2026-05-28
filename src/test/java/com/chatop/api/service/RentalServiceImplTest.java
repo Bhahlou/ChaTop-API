@@ -100,7 +100,8 @@ class RentalServiceImplTest {
         MockMultipartFile file = new MockMultipartFile(
                 "picture", "house.jpg", "image/jpeg", "image-bytes".getBytes());
 
-        assertThatThrownBy(() -> rentalService.createRental(buildRequest(file), "unknown@test.com"))
+        CreateRentalRequest request = buildRequest(file);
+        assertThatThrownBy(() -> rentalService.createRental(request, "unknown@test.com"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("User not found");
 
@@ -131,7 +132,7 @@ class RentalServiceImplTest {
     @Test
     @Tag("saveFile")
     @DisplayName("saveFile - Path traversal in filename: file stays inside upload dir")
-    void saveFileShouldNotEscapeUploadDirWhenFilenameContainsPathTraversal() throws Exception {
+    void saveFileShouldNotEscapeUploadDirWhenFilenameContainsPathTraversal() {
         Rental rental = new Rental();
         when(userRepository.findByEmail(any())).thenReturn(Optional.of(new User()));
         when(modelMapper.map(any(), eq(Rental.class))).thenReturn(rental);
@@ -157,7 +158,8 @@ class RentalServiceImplTest {
         when(brokenFile.getOriginalFilename()).thenReturn("house.jpg");
         when(brokenFile.getInputStream()).thenThrow(new IOException("disk full"));
 
-        assertThatThrownBy(() -> rentalService.createRental(buildRequest(brokenFile), "alice@test.com"))
+        CreateRentalRequest brokenRequest = buildRequest(brokenFile);
+        assertThatThrownBy(() -> rentalService.createRental(brokenRequest, "alice@test.com"))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Failed to store file");
 
