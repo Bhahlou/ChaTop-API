@@ -12,6 +12,8 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +31,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.chatop.api.dto.CreateRentalRequest;
+import com.chatop.api.dto.GetAllRentalsResponse;
 import com.chatop.api.dto.SuccessMessageResponse;
 import com.chatop.api.entity.Rental;
 import com.chatop.api.entity.User;
@@ -164,5 +167,60 @@ class RentalServiceImplTest {
                 .hasMessage("Failed to store file");
 
         verify(rentalRepository, never()).save(any());
+    }
+
+    // -------------------------------------------------------------------------
+    // getRentals
+    // -------------------------------------------------------------------------
+
+    @Test
+    @Tag("getRentals")
+    @DisplayName("getRentals - Returns all rentals mapped to RentalResponse")
+    void getRentalsShouldReturnMappedRentals() {
+        User owner = new User();
+        owner.setId(1L);
+
+        Rental rental1 = new Rental();
+        rental1.setId(1L);
+        rental1.setName("Beach House");
+        rental1.setSurface(80);
+        rental1.setPrice(1200);
+        rental1.setPicture("http://example.com/pic1.jpg");
+        rental1.setDescription("Nice place");
+        rental1.setOwner(owner);
+        rental1.setCreatedAt(LocalDateTime.of(2022, 1, 1, 0, 0));
+        rental1.setUpdatedAt(LocalDateTime.of(2022, 1, 1, 0, 0));
+
+        Rental rental2 = new Rental();
+        rental2.setId(2L);
+        rental2.setName("Mountain Cabin");
+        rental2.setSurface(60);
+        rental2.setPrice(800);
+        rental2.setPicture("http://example.com/pic2.jpg");
+        rental2.setDescription("Cozy cabin");
+        rental2.setOwner(owner);
+        rental2.setCreatedAt(LocalDateTime.of(2022, 6, 15, 0, 0));
+        rental2.setUpdatedAt(LocalDateTime.of(2022, 6, 15, 0, 0));
+
+        when(rentalRepository.findAll()).thenReturn(List.of(rental1, rental2));
+
+        GetAllRentalsResponse result = rentalService.getRentals();
+
+        assertThat(result.getRentals()).hasSize(2);
+        assertThat(result.getRentals().get(0).getName()).isEqualTo("Beach House");
+        assertThat(result.getRentals().get(0).getOwner_id()).isEqualTo(1L);
+        assertThat(result.getRentals().get(0).getCreatedAt()).isEqualTo("2022/01/01");
+        assertThat(result.getRentals().get(1).getName()).isEqualTo("Mountain Cabin");
+        assertThat(result.getRentals().get(1).getCreatedAt()).isEqualTo("2022/06/15");
+    }
+
+    @Test
+    @Tag("getRentals")
+    @DisplayName("getRentals - Empty repository returns empty list")
+    void getRentalsShouldReturnEmptyListWhenNoRentals() {
+        when(rentalRepository.findAll()).thenReturn(List.of());
+
+        assertThat(rentalService.getRentals()).isNotNull()
+                .returns(List.of(), GetAllRentalsResponse::getRentals);
     }
 }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.chatop.api.dto.CreateRentalRequest;
+import com.chatop.api.dto.GetAllRentalsResponse;
+import com.chatop.api.dto.RentalResponse;
 import com.chatop.api.dto.SuccessMessageResponse;
 import com.chatop.api.entity.Rental;
 import com.chatop.api.exception.CouldNotSSaveFile;
@@ -20,6 +23,8 @@ import com.chatop.api.repository.UserRepository;
 
 @Service
 public class RentalServiceImpl implements RentalService {
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd");
 
     private final RentalRepository rentalRepository;
     private final UserRepository userRepository;
@@ -53,6 +58,13 @@ public class RentalServiceImpl implements RentalService {
         return new SuccessMessageResponse("Rental created !");
     }
 
+    @Override
+    public GetAllRentalsResponse getRentals() {
+        return new GetAllRentalsResponse(rentalRepository.findAll().stream()
+                .map(this::toResponse)
+                .toList());
+    }
+
     private String saveFile(MultipartFile file) {
         try {
             Path uploadPath = Path.of(uploadDir).toAbsolutePath().normalize();
@@ -72,6 +84,15 @@ public class RentalServiceImpl implements RentalService {
         } catch (IOException e) {
             throw new CouldNotSSaveFile("Failed to store file");
         }
+    }
+
+    private RentalResponse toResponse(Rental rental) {
+        Long ownerId = rental.getOwner() != null ? rental.getOwner().getId() : null;
+        String createdAt = rental.getCreatedAt() != null ? rental.getCreatedAt().format(DATE_FORMATTER) : null;
+        String updatedAt = rental.getUpdatedAt() != null ? rental.getUpdatedAt().format(DATE_FORMATTER) : null;
+        return new RentalResponse(
+                rental.getId(), rental.getName(), rental.getSurface(), rental.getPrice(),
+                rental.getPicture(), rental.getDescription(), ownerId, createdAt, updatedAt);
     }
 
 }

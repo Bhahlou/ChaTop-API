@@ -1,17 +1,15 @@
-package com.chatop.api.integration;
+package com.chatop.api.acceptance;
 
 import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,28 +17,21 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.chatop.api.dto.RegisterRequest;
-import com.chatop.api.security.JwtAuthenticationFilter;
 import com.chatop.api.service.AuthService;
-
-import jakarta.servlet.FilterChain;
-import jakarta.transaction.Transactional;
+import com.jayway.jsonpath.JsonPath;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-class RentalIntegrationTest {
-
-    private static final String TEST_USER_EMAIL = "alice@integration.com";
+class GetRentalsAcceptanceTest {
 
     @TempDir
     static Path tempUploadDir;
@@ -56,50 +47,44 @@ class RentalIntegrationTest {
     @Autowired
     private AuthService authService;
 
-    @MockitoBean
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    @MockitoBean
-    private UserDetailsService userDetailsService;
+    private String token;
 
     @BeforeEach
     void setUp() throws Exception {
-        authService.register(new RegisterRequest("Alice", TEST_USER_EMAIL, "password123"));
-        doAnswer(inv -> {
-            inv.getArgument(2, FilterChain.class).doFilter(inv.getArgument(0), inv.getArgument(1));
-            return null;
-        }).when(jwtAuthenticationFilter).doFilter(any(), any(), any());
-    }
-
-    @Test
-    @WithMockUser(username = TEST_USER_EMAIL)
-    @Tag("post")
-    void createRentalShouldReturn200WithSuccessMessage() throws Exception {
-        MockMultipartFile picture = new MockMultipartFile(
-                "picture", "rental.jpg", MediaType.IMAGE_JPEG_VALUE, "test-image".getBytes());
-
-        mockMvc.perform(multipart("/api/rentals")
-                .file(picture)
-                .param("name", "Test Rental")
-                .param("surface", "100")
-                .param("price", "1500")
-                .param("description", "A nice rental for testing."))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Rental created !"));
-    }
-
-    @Test
-    @WithMockUser(username = TEST_USER_EMAIL)
-    @Tag("get")
-    void getRentalsShouldReturn200WithPersistedRentals() throws Exception {
+        authService.register(new RegisterRequest("Alice", "alice@acceptance.com", "password123"));
+        token = loginAs("alice@acceptance.com", "password123");
         createRental("Beach House");
         createRental("Mountain Cabin");
+    }
 
-        mockMvc.perform(get("/api/rentals"))
+    @Test
+    void getRentalsShouldReturnCreatedRentals() throws Exception {
+        mockMvc.perform(get("/api/rentals")
+                .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.rentals").isArray())
                 .andExpect(jsonPath("$.rentals", hasSize(2)))
                 .andExpect(jsonPath("$.rentals[0].name").value("Beach House"))
                 .andExpect(jsonPath("$.rentals[1].name").value("Mountain Cabin"));
+    }
+
+    @Test
+    void getRentalsWithoutAuthShouldReturnUnauthorized() throws Exception {
+        mockMvc.perform(get("/api/rentals"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    private String loginAs(String email, String password) throws Exception {
+        String responseJson = mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {"email": "%s", "password": "%s"}
+                        """.formatted(email, password)))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        return JsonPath.read(responseJson, "$.token");
     }
 
     private void createRental(String name) throws Exception {
@@ -110,8 +95,8 @@ class RentalIntegrationTest {
                 .param("name", name)
                 .param("surface", "80")
                 .param("price", "1200")
-                .param("description", "A lovely place."))
+                .param("description", "A lovely place.")
+                .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
     }
-
 }

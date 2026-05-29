@@ -1,6 +1,7 @@
 package com.chatop.api.service;
 
 import com.chatop.api.dto.CreateRentalRequest;
+import com.chatop.api.dto.GetAllRentalsResponse;
 import com.chatop.api.dto.SuccessMessageResponse;
 
 public interface RentalService {
@@ -12,4 +13,11 @@ public interface RentalService {
      * @return A response indicating the success of the operation.
      */
     SuccessMessageResponse createRental(CreateRentalRequest request, String userEmail);
+
+    /**
+     * Retrieves a list of all rentals.
+     * 
+     * @return A list of all rentals.
+     */
+    GetAllRentalsResponse getRentals();
 }
