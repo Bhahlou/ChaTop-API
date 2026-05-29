@@ -209,7 +209,7 @@ class RentalServiceImplTest {
 
         assertThat(result.getRentals()).hasSize(2);
         assertThat(result.getRentals().get(0).getName()).isEqualTo("Beach House");
-        assertThat(result.getRentals().get(0).getOwner_id()).isEqualTo(1L);
+        assertThat(result.getRentals().get(0).getOwnerId()).isEqualTo(1L);
         assertThat(result.getRentals().get(0).getCreatedAt()).isEqualTo("2022/01/01");
         assertThat(result.getRentals().get(1).getName()).isEqualTo("Mountain Cabin");
         assertThat(result.getRentals().get(1).getCreatedAt()).isEqualTo("2022/06/15");
@@ -262,7 +262,7 @@ class RentalServiceImplTest {
         assertThat(result.getName()).isEqualTo("Beach House");
         assertThat(result.getSurface()).isEqualTo(80);
         assertThat(result.getPrice()).isEqualTo(1200);
-        assertThat(result.getOwner_id()).isEqualTo(1L);
+        assertThat(result.getOwnerId()).isEqualTo(1L);
         assertThat(result.getCreatedAt()).isEqualTo("2022/01/01");
     }
 }
