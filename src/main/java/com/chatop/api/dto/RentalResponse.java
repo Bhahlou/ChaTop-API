@@ -30,8 +30,9 @@ public class RentalResponse {
     @Schema(description = "Rental description", example = "A beautiful rental property")
     private String description;
 
+    @JsonProperty("owner_id")
     @Schema(description = "Rental owner id", example = "1")
-    private Long owner_id;
+    private Long ownerId;
 
     @JsonProperty("created_at")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd")
