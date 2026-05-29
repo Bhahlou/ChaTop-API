@@ -67,7 +67,8 @@ class MessageServiceImplTest {
     void sendMessageShouldThrowWhenUserNotFound() {
         when(userRepository.findByEmail("unknown@test.com")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> messageService.sendMessage(new MessageRequest(1L, 1L, "Hello!"), "unknown@test.com"))
+        MessageRequest request = new MessageRequest(1L, 1L, "Hello!");
+        assertThatThrownBy(() -> messageService.sendMessage(request, "unknown@test.com"))
                 .isInstanceOf(UserNotFoundException.class)
                 .hasMessage("User not found");
 
@@ -81,7 +82,8 @@ class MessageServiceImplTest {
         when(userRepository.findByEmail("alice@test.com")).thenReturn(Optional.of(new User()));
         when(rentalRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> messageService.sendMessage(new MessageRequest(99L, 1L, "Hello!"), "alice@test.com"))
+        MessageRequest request = new MessageRequest(99L, 1L, "Hello!");
+        assertThatThrownBy(() -> messageService.sendMessage(request, "alice@test.com"))
                 .isInstanceOf(RentalNotFoundException.class)
                 .hasMessage("Rental not found");
 
