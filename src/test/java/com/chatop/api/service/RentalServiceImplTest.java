@@ -31,6 +31,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.chatop.api.dto.CreateRentalRequest;
+import com.chatop.api.dto.UpdateRentalRequest;
 import com.chatop.api.dto.GetAllRentalsResponse;
 import com.chatop.api.dto.RentalResponse;
 import com.chatop.api.dto.SuccessMessageResponse;
@@ -264,5 +265,25 @@ class RentalServiceImplTest {
         assertThat(result.getPrice()).isEqualTo(1200);
         assertThat(result.getOwnerId()).isEqualTo(1L);
         assertThat(result.getCreatedAt()).isEqualTo("2022/01/01");
+    }
+
+    @Test
+    @Tag("putRentalById")
+    @DisplayName("updateRental - Success: updates rental and returns success message")
+    void updateRentalShouldUpdateRentalAndReturnSuccessMessage() {
+        Rental existingRental = new Rental();
+        existingRental.setId(1L);
+        when(rentalRepository.findById(1L)).thenReturn(Optional.of(existingRental));
+
+        UpdateRentalRequest updateRequest = new UpdateRentalRequest();
+        updateRequest.setName("Updated Beach House");
+        updateRequest.setSurface(90);
+        updateRequest.setPrice(1300);
+        updateRequest.setDescription("A updated lovely place.");
+
+        SuccessMessageResponse response = rentalService.updateRental(1L, updateRequest);
+
+        assertThat(response.getMessage()).isEqualTo("Rental updated !");
+        verify(rentalRepository).save(any(Rental.class));
     }
 }

@@ -2,6 +2,7 @@ package com.chatop.api.controller;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -27,6 +28,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.chatop.api.config.SecurityConfig;
+import com.chatop.api.dto.UpdateRentalRequest;
 import com.chatop.api.dto.GetAllRentalsResponse;
 import com.chatop.api.dto.RentalResponse;
 import com.chatop.api.dto.SuccessMessageResponse;
@@ -175,4 +177,34 @@ class RentalControllerTest {
                                 .andExpect(status().isUnauthorized());
         }
 
+        @Test
+        @Tag("putRentalById")
+        @WithMockUser
+        @DisplayName("PUT /api/rentals/{id} - Success")
+        void putRentalByIdShouldReturn200WhenValidRequest() throws Exception {
+                when(rentalService.updateRental(anyLong(), any(UpdateRentalRequest.class))).thenReturn(
+                                new SuccessMessageResponse("Rental updated !"));
+
+                mockMvc.perform(multipart("/api/rentals/{id}", 1L)
+                                .with(request -> { request.setMethod("PUT"); return request; })
+                                .param("name", "Updated Test Rental 1")
+                                .param("surface", "100")
+                                .param("price", "1500")
+                                .param("description", "Updated Description 1"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.message").value("Rental updated !"));
+        }
+
+        @Test
+        @Tag("putRentalById")
+        @DisplayName("PUT /api/rentals/{id} - Missing token")
+        void putRentalByIdShouldReturn401WhenTokenIsMissing() throws Exception {
+                mockMvc.perform(multipart("/api/rentals/{id}", 1L)
+                                .with(request -> { request.setMethod("PUT"); return request; })
+                                .param("name", "Updated Test Rental 1")
+                                .param("surface", "100")
+                                .param("price", "1500")
+                                .param("description", "Updated Description 1"))
+                                .andExpect(status().isUnauthorized());
+        }
 }
