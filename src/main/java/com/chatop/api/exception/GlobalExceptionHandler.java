@@ -36,4 +36,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleRentalNotFound(RentalNotFoundException ex) {
         return ResponseEntity.status(404).body(Map.of(MESSAGE, ex.getMessage()));
     }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleUserNotFound(UserNotFoundException ex) {
+        return ResponseEntity.status(404).body(Map.of(MESSAGE, ex.getMessage()));
+    }
 }

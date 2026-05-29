@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@Schema(description = "Get current user information response")
-public class GetMeResponse {
+@Schema(description = "Get user information response")
+public class GetUserResponse {
 
     @Schema(description = "User ID", example = "1")
     private Long id;

@@ -1,7 +1,7 @@
 package com.chatop.api.controller;
 
 import com.chatop.api.dto.AuthResponse;
-import com.chatop.api.dto.GetMeResponse;
+import com.chatop.api.dto.GetUserResponse;
 import com.chatop.api.dto.LoginRequest;
 import com.chatop.api.dto.RegisterRequest;
 import com.chatop.api.service.AuthService;
@@ -49,7 +49,7 @@ public class AuthController {
     @ApiResponse(responseCode = "200", description = "User info returned")
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     @GetMapping("/me")
-    public ResponseEntity<GetMeResponse> getMe(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<GetUserResponse> getMe(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(authService.getMe(userDetails));
     }
 
