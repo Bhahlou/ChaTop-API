@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,6 +16,7 @@ import com.chatop.api.dto.CreateRentalRequest;
 import com.chatop.api.dto.GetAllRentalsResponse;
 import com.chatop.api.dto.RentalResponse;
 import com.chatop.api.dto.SuccessMessageResponse;
+import com.chatop.api.dto.UpdateRentalRequest;
 import com.chatop.api.service.RentalService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -60,6 +62,17 @@ public class RentalController {
     @GetMapping("/{id}")
     public ResponseEntity<RentalResponse> getRentalById(@PathVariable Long id) {
         final RentalResponse response = rentalService.getRentalById(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Update rental by ID")
+    @ApiResponse(responseCode = "200", description = "Rental updated successfully")
+    @ApiResponse(responseCode = "404", description = "Rental not found")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<SuccessMessageResponse> updateRental(@PathVariable Long id,
+            @Valid @ModelAttribute UpdateRentalRequest request) {
+        final SuccessMessageResponse response = rentalService.updateRental(id, request);
         return ResponseEntity.ok(response);
     }
 }

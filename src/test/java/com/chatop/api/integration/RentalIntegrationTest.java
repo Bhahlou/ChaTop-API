@@ -118,6 +118,47 @@ class RentalIntegrationTest {
                 .andExpect(jsonPath("$.picture").exists());
     }
 
+    @Test
+    @WithMockUser(username = TEST_USER_EMAIL)
+    @Tag("putById")
+    void putRentalByIdShouldReturn200WhenValidRequest() throws Exception {
+        Long rentalId = createRentalAndGetId("Beach House");
+
+        mockMvc.perform(multipart("/api/rentals/{id}", rentalId)
+                .with(request -> { request.setMethod("PUT"); return request; })
+                .param("name", "Updated Beach House")
+                .param("surface", "90")
+                .param("price", "1300")
+                .param("description", "A updated lovely place."))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Rental updated !"));
+    }
+
+    @Test
+    @WithMockUser(username = TEST_USER_EMAIL)
+    @Tag("putById")
+    void putRentalByIdShouldReturn404WhenRentalNotFound() throws Exception {
+        mockMvc.perform(multipart("/api/rentals/{id}", 9999L)
+                .with(request -> { request.setMethod("PUT"); return request; })
+                .param("name", "Non Existing Rental")
+                .param("surface", "50")
+                .param("price", "800")
+                .param("description", "This rental does not exist."))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @Tag("putById")
+    void putRentalByIdShouldReturn401WithoutAuthentication() throws Exception {
+        mockMvc.perform(multipart("/api/rentals/{id}", 1L)
+                .with(request -> { request.setMethod("PUT"); return request; })
+                .param("name", "Updated Beach House")
+                .param("surface", "90")
+                .param("price", "1300")
+                .param("description", "A updated lovely place."))
+                .andExpect(status().isUnauthorized());
+    }
+
     private void createRental(String name) throws Exception {
         MockMultipartFile picture = new MockMultipartFile(
                 "picture", "rental.jpg", MediaType.IMAGE_JPEG_VALUE, "test-image".getBytes());

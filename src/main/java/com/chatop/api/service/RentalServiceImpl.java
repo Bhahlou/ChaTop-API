@@ -16,6 +16,7 @@ import com.chatop.api.dto.CreateRentalRequest;
 import com.chatop.api.dto.GetAllRentalsResponse;
 import com.chatop.api.dto.RentalResponse;
 import com.chatop.api.dto.SuccessMessageResponse;
+import com.chatop.api.dto.UpdateRentalRequest;
 import com.chatop.api.entity.Rental;
 import com.chatop.api.exception.CouldNotSSaveFile;
 import com.chatop.api.exception.RentalNotFoundException;
@@ -54,6 +55,7 @@ public class RentalServiceImpl implements RentalService {
         Rental rental = modelMapper.map(request, Rental.class);
         rental.setPicture(pictureUrl);
         rental.setCreatedAt(LocalDateTime.now());
+        rental.setUpdatedAt(LocalDateTime.now());
         rental.setOwner(user);
         rentalRepository.save(rental);
         return new SuccessMessageResponse("Rental created !");
@@ -71,6 +73,20 @@ public class RentalServiceImpl implements RentalService {
         return rentalRepository.findById(id)
                 .map(this::toResponse)
                 .orElseThrow(() -> new RentalNotFoundException("Rental not found"));
+    }
+
+    @Override
+    public SuccessMessageResponse updateRental(Long id, UpdateRentalRequest request) {
+        Rental rental = rentalRepository.findById(id)
+                .orElseThrow(() -> new RentalNotFoundException("Rental not found"));
+
+        rental.setName(request.getName());
+        rental.setSurface(request.getSurface());
+        rental.setPrice(request.getPrice());
+        rental.setDescription(request.getDescription());
+        rental.setUpdatedAt(LocalDateTime.now());
+        rentalRepository.save(rental);
+        return new SuccessMessageResponse("Rental updated !");
     }
 
     private String saveFile(MultipartFile file) {

@@ -4,6 +4,7 @@ import com.chatop.api.dto.CreateRentalRequest;
 import com.chatop.api.dto.GetAllRentalsResponse;
 import com.chatop.api.dto.RentalResponse;
 import com.chatop.api.dto.SuccessMessageResponse;
+import com.chatop.api.dto.UpdateRentalRequest;
 
 public interface RentalService {
     /**
@@ -29,4 +30,13 @@ public interface RentalService {
      * @return The rental details if found.
      */
     RentalResponse getRentalById(Long id);
+
+    /**
+     * Updates an existing rental with the provided details.
+     *
+     * @param id      The ID of the rental to update.
+     * @param request The request containing updated rental details.
+     * @return A response indicating the success of the operation.
+     */
+    SuccessMessageResponse updateRental(Long id, UpdateRentalRequest request);
 }
