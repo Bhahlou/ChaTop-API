@@ -30,6 +30,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.chatop.api.dto.RegisterRequest;
 import com.chatop.api.security.JwtAuthenticationFilter;
 import com.chatop.api.service.AuthService;
+import com.jayway.jsonpath.JsonPath;
 
 import jakarta.servlet.FilterChain;
 import jakarta.transaction.Transactional;
@@ -90,7 +91,7 @@ class RentalIntegrationTest {
 
     @Test
     @WithMockUser(username = TEST_USER_EMAIL)
-    @Tag("get")
+    @Tag("getAll")
     void getRentalsShouldReturn200WithPersistedRentals() throws Exception {
         createRental("Beach House");
         createRental("Mountain Cabin");
@@ -100,6 +101,21 @@ class RentalIntegrationTest {
                 .andExpect(jsonPath("$.rentals", hasSize(2)))
                 .andExpect(jsonPath("$.rentals[0].name").value("Beach House"))
                 .andExpect(jsonPath("$.rentals[1].name").value("Mountain Cabin"));
+    }
+
+    @Test
+    @WithMockUser(username = TEST_USER_EMAIL)
+    @Tag("getById")
+    void getRentalByIdShouldReturn200WithRentalDetails() throws Exception {
+        Long rentalId = createRentalAndGetId("Beach House");
+
+        mockMvc.perform(get("/api/rentals/{id}", rentalId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Beach House"))
+                .andExpect(jsonPath("$.surface").value(80))
+                .andExpect(jsonPath("$.price").value(1200))
+                .andExpect(jsonPath("$.description").value("A lovely place."))
+                .andExpect(jsonPath("$.picture").exists());
     }
 
     private void createRental(String name) throws Exception {
@@ -114,4 +130,23 @@ class RentalIntegrationTest {
                 .andExpect(status().isOk());
     }
 
+    private Long createRentalAndGetId(String name) throws Exception {
+        MockMultipartFile picture = new MockMultipartFile(
+                "picture", "rental.jpg", MediaType.IMAGE_JPEG_VALUE, "test-image".getBytes());
+        mockMvc.perform(multipart("/api/rentals")
+                .file(picture)
+                .param("name", name)
+                .param("surface", "80")
+                .param("price", "1200")
+                .param("description", "A lovely place."))
+                .andExpect(status().isOk());
+
+        var response = mockMvc.perform(get("/api/rentals"))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        return ((Number) JsonPath.read(response, "$.rentals[0].id")).longValue();
+    }
 }

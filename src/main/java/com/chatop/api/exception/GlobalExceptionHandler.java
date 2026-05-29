@@ -31,4 +31,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleCouldNotSaveFile(CouldNotSSaveFile ex) {
         return ResponseEntity.status(500).body(Map.of(MESSAGE, ex.getMessage()));
     }
+
+    @ExceptionHandler(RentalNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleRentalNotFound(RentalNotFoundException ex) {
+        return ResponseEntity.status(404).body(Map.of(MESSAGE, ex.getMessage()));
+    }
 }

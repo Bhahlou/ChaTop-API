@@ -133,4 +133,46 @@ class RentalControllerTest {
                                 .andExpect(jsonPath("$.rentals[1].name").value("Test Rental 2"));
         }
 
+        @Test
+        @Tag("getRentals")
+        @DisplayName("GET /api/rentals - Missing token")
+        void getRentalsShouldReturn401WhenTokenIsMissing() throws Exception {
+                mockMvc.perform(get("/api/rentals"))
+                                .andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        @Tag("getRentalById")
+        @WithMockUser
+        @DisplayName("GET /api/rentals/{id} - Success")
+        void getRentalByIdShouldReturn200WithRentalWhenValidRequest() throws Exception {
+                when(rentalService.getRentalById(1L))
+                                .thenReturn(new RentalResponse(
+                                                1L,
+                                                "Test Rental 1",
+                                                100,
+                                                1500,
+                                                "http://example.com/rental1.jpg",
+                                                "Description 1",
+                                                1L,
+                                                "2022/01/01",
+                                                "2022/01/01"));
+
+                mockMvc.perform(get("/api/rentals/{id}", 1L))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.name").value("Test Rental 1"))
+                                .andExpect(jsonPath("$.surface").value(100))
+                                .andExpect(jsonPath("$.price").value(1500))
+                                .andExpect(jsonPath("$.description").value("Description 1"))
+                                .andExpect(jsonPath("$.picture").value("http://example.com/rental1.jpg"));
+        }
+
+        @Test
+        @Tag("getRentalById")
+        @DisplayName("GET /api/rentals/{id} - Missing token")
+        void getRentalByIdShouldReturn401WhenTokenIsMissing() throws Exception {
+                mockMvc.perform(get("/api/rentals/{id}", 1L))
+                                .andExpect(status().isUnauthorized());
+        }
+
 }

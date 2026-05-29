@@ -18,6 +18,7 @@ import com.chatop.api.dto.RentalResponse;
 import com.chatop.api.dto.SuccessMessageResponse;
 import com.chatop.api.entity.Rental;
 import com.chatop.api.exception.CouldNotSSaveFile;
+import com.chatop.api.exception.RentalNotFoundException;
 import com.chatop.api.repository.RentalRepository;
 import com.chatop.api.repository.UserRepository;
 
@@ -63,6 +64,13 @@ public class RentalServiceImpl implements RentalService {
         return new GetAllRentalsResponse(rentalRepository.findAll().stream()
                 .map(this::toResponse)
                 .toList());
+    }
+
+    @Override
+    public RentalResponse getRentalById(Long id) {
+        return rentalRepository.findById(id)
+                .map(this::toResponse)
+                .orElseThrow(() -> new RentalNotFoundException("Rental not found"));
     }
 
     private String saveFile(MultipartFile file) {

@@ -32,6 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.chatop.api.dto.CreateRentalRequest;
 import com.chatop.api.dto.GetAllRentalsResponse;
+import com.chatop.api.dto.RentalResponse;
 import com.chatop.api.dto.SuccessMessageResponse;
 import com.chatop.api.entity.Rental;
 import com.chatop.api.entity.User;
@@ -222,5 +223,46 @@ class RentalServiceImplTest {
 
         assertThat(rentalService.getRentals()).isNotNull()
                 .returns(List.of(), GetAllRentalsResponse::getRentals);
+    }
+
+    @Test
+    @Tag("getRentals")
+    @DisplayName("getRentals - Repository exception propagates")
+    void getRentalsShouldPropagateRepositoryException() {
+        when(rentalRepository.findAll()).thenThrow(new RuntimeException("DB error"));
+
+        assertThatThrownBy(() -> rentalService.getRentals())
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("DB error");
+    }
+
+    @Test
+    @Tag("getRentalById")
+    @DisplayName("getRentalById - Success: returns rental details when found")
+    void getRentalByIdShouldReturnRentalDetailsWhenFound() {
+        User owner = new User();
+        owner.setId(1L);
+
+        Rental rental = new Rental();
+        rental.setId(1L);
+        rental.setName("Beach House");
+        rental.setSurface(80);
+        rental.setPrice(1200);
+        rental.setPicture("http://example.com/pic.jpg");
+        rental.setDescription("Nice place");
+        rental.setOwner(owner);
+        rental.setCreatedAt(LocalDateTime.of(2022, 1, 1, 0, 0));
+        rental.setUpdatedAt(LocalDateTime.of(2022, 1, 1, 0, 0));
+
+        when(rentalRepository.findById(1L)).thenReturn(Optional.of(rental));
+
+        RentalResponse result = rentalService.getRentalById(1L);
+
+        assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result.getName()).isEqualTo("Beach House");
+        assertThat(result.getSurface()).isEqualTo(80);
+        assertThat(result.getPrice()).isEqualTo(1200);
+        assertThat(result.getOwner_id()).isEqualTo(1L);
+        assertThat(result.getCreatedAt()).isEqualTo("2022/01/01");
     }
 }
