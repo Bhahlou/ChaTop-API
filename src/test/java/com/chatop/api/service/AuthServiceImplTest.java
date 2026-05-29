@@ -1,6 +1,6 @@
 package com.chatop.api.service;
 
-import com.chatop.api.dto.GetMeResponse;
+import com.chatop.api.dto.GetUserResponse;
 import com.chatop.api.dto.LoginRequest;
 import com.chatop.api.dto.RegisterRequest;
 import com.chatop.api.entity.User;
@@ -159,7 +159,7 @@ class AuthServiceImplTest {
 
     @Test
     @Tag("me")
-    @DisplayName("getMe - Success: returns mapped GetMeResponse")
+    @DisplayName("getMe - Success: returns mapped GetUserResponse")
     void getMeShouldReturnMappedResponse() {
         UserDetails userDetails = mock(UserDetails.class);
         when(userDetails.getUsername()).thenReturn("alice@test.com");
@@ -171,15 +171,15 @@ class AuthServiceImplTest {
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
 
-        GetMeResponse expected = new GetMeResponse();
+        GetUserResponse expected = new GetUserResponse();
         expected.setId(1L);
         expected.setName("Alice");
         expected.setEmail("alice@test.com");
 
         when(userRepository.findByEmail("alice@test.com")).thenReturn(Optional.of(user));
-        when(modelMapper.map(user, GetMeResponse.class)).thenReturn(expected);
+        when(modelMapper.map(user, GetUserResponse.class)).thenReturn(expected);
 
-        GetMeResponse response = authService.getMe(userDetails);
+        GetUserResponse response = authService.getMe(userDetails);
 
         assertThat(response.getId()).isEqualTo(1L);
         assertThat(response.getName()).isEqualTo("Alice");

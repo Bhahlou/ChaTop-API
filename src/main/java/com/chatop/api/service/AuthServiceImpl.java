@@ -1,6 +1,6 @@
 package com.chatop.api.service;
 
-import com.chatop.api.dto.GetMeResponse;
+import com.chatop.api.dto.GetUserResponse;
 import com.chatop.api.dto.LoginRequest;
 import com.chatop.api.dto.RegisterRequest;
 import com.chatop.api.entity.User;
@@ -25,7 +25,8 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final ModelMapper modelMapper;
 
-    public AuthServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, ModelMapper modelMapper) {
+    public AuthServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil,
+            ModelMapper modelMapper) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
@@ -66,11 +67,11 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public GetMeResponse getMe(UserDetails userDetails) {
+    public GetUserResponse getMe(UserDetails userDetails) {
         User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new LoginException("User not found"));
 
-        return modelMapper.map(user, GetMeResponse.class);
+        return modelMapper.map(user, GetUserResponse.class);
     }
 
 }

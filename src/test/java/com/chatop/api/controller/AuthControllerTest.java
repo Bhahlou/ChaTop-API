@@ -1,7 +1,7 @@
 package com.chatop.api.controller;
 
 import com.chatop.api.config.SecurityConfig;
-import com.chatop.api.dto.GetMeResponse;
+import com.chatop.api.dto.GetUserResponse;
 import com.chatop.api.exception.LoginException;
 import com.chatop.api.security.JwtAuthenticationFilter;
 import com.chatop.api.service.AuthService;
@@ -145,7 +145,7 @@ class AuthControllerTest {
   @DisplayName("GET /api/auth/me - Success")
   @WithMockUser(username = "john@test.com")
   void meShouldReturn200WithUserInfoWhenTokenIsValid() throws Exception {
-    GetMeResponse meResponse = new GetMeResponse();
+    GetUserResponse meResponse = new GetUserResponse();
     meResponse.setId(1L);
     meResponse.setName("John Doe");
     meResponse.setEmail("john@test.com");
